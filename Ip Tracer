@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OITS – Orbital Intelligence Trace System</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+<style>
+body{
+ margin:0;
+ background:black;
+ font-family:'Orbitron',monospace;
+ color:#00ffe7;
+ overflow:hidden;
+}
+#hud{
+ position:fixed;
+ top:15px;
+ left:15px;
+ width:320px;
+ padding:15px;
+ background:rgba(0,0,0,.75);
+ border:1px solid #00ffe7;
+ box-shadow:0 0 25px #00ffe7;
+ z-index:10;
+}
+input,button{
+ width:100%;
+ margin-top:8px;
+ padding:8px;
+ background:black;
+ color:#00ffe7;
+ border:1px solid #00ffe7;
+ font-family:'Orbitron';
+}
+button{cursor:pointer;font-weight:bold}
+#out p{font-size:12px;margin:4px 0}
+#map{
+ position:fixed;
+ bottom:15px;
+ left:15px;
+ width:320px;
+ height:220px;
+ border:1px solid #00ffe7;
+ box-shadow:0 0 20px #00ffe7;
+ z-index:10;
+}
+#globe{
+ position:fixed;
+ top:0;left:0;
+ width:100%;height:100%;
+ z-index:1;
+}
+.grid{
+ position:fixed;
+ width:100%;height:100%;
+ background:
+ linear-gradient(#00ffe711 1px,transparent 1px),
+ linear-gradient(90deg,#00ffe711 1px,transparent 1px);
+ background-size:40px 40px;
+ animation:move 25s linear infinite;
+ z-index:0;
+}
+@keyframes move{
+ from{background-position:0 0}
+ to{background-position:400px 400px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="grid"></div>
+<div id="globe"></div>
+
+<div id="hud">
+<h3>🧠 O.I.T.S GOD MODE</h3>
+<input id="ip" placeholder="ENTER IP (blank = auto)">
+<button onclick="trace()">INITIATE SCAN</button>
+<div id="out"></div>
+<hr>
+<p>☢ DARK WEB ACTIVITY: ACTIVE</p>
+<p>🕶 AGENCY INTEREST: HIGH</p>
+<p>📡 SATELLITE LINK: STABLE</p>
+</div>
+
+<div id="map"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160/build/three.min.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+// ===== THREE.JS EARTH =====
+let scene=new THREE.Scene();
+let camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,1,1000);
+let renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setSize(innerWidth,innerHeight);
+document.getElementById("globe").appendChild(renderer.domElement);
+
+let earth=new THREE.Mesh(
+ new THREE.SphereGeometry(5,64,64),
+ new THREE.MeshBasicMaterial({
+  map:new THREE.TextureLoader().load(
+   "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg"
+  )
+ })
+);
+scene.add(earth);
+
+let beam=new THREE.Mesh(
+ new THREE.CylinderGeometry(.03,.03,8,32),
+ new THREE.MeshBasicMaterial({color:0x00ffe7})
+);
+beam.position.y=4;
+scene.add(beam);
+
+camera.position.z=12;
+
+function animate(){
+ requestAnimationFrame(animate);
+ earth.rotation.y+=0.002;
+ beam.rotation.y+=0.01;
+ renderer.render(scene,camera);
+}
+animate();
+
+// ===== MAP =====
+let map=L.map('map').setView([0,0],2);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+.addTo(map);
+let marker;
+
+function mark(lat,lng){
+ map.setView([lat,lng],6);
+ if(marker) map.removeLayer(marker);
+ marker=L.marker([lat,lng]).addTo(map);
+}
+
+// ===== VOICE =====
+function speak(t){
+ let s=new SpeechSynthesisUtterance(t);
+ s.rate=0.9;
+ speechSynthesis.speak(s);
+}
+
+// ===== IP TRACE =====
+function trace(){
+ speak("Orbital scan initiated");
+ let ip=document.getElementById("ip").value.trim();
+ let url=ip?`https://ipapi.co/${ip}/json/`:`https://ipapi.co/json/`;
+
+ fetch(url).then(r=>r.json()).then(d=>{
+  if(d.error){
+   document.getElementById("out").innerHTML="<p>❌ INVALID IP</p>";
+   speak("Invalid IP detected");
+   return;
+  }
+  let threat=Math.floor(Math.random()*20)+80;
+  document.getElementById("out").innerHTML=`
+   <p>🧬 IP: ${d.ip}</p>
+   <p>🌍 Country: ${d.country_name}</p>
+   <p>🏙 City: ${d.city}</p>
+   <p>📡 ISP: ${d.org}</p>
+   <p>🛰 Lat/Lng: ${d.latitude}, ${d.longitude}</p>
+   <p>☢ THREAT LEVEL: ${threat}%</p>
+   <p>⚡ STATUS: TRACE COMPLETE</p>
+  `;
+  mark(d.latitude,d.longitude);
+  speak("Scan completed successfully");
+ });
+}
+</script>
+
+</body>
+</html>
