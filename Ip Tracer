@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>OITS – Orbital Intelligence Trace System</title>
+<title>IP Tracer by Anik</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
@@ -13,164 +13,159 @@ body{
  background:black;
  font-family:'Orbitron',monospace;
  color:#00ffe7;
- overflow:hidden;
 }
-#hud{
- position:fixed;
- top:15px;
- left:15px;
- width:320px;
+header{
+ text-align:center;
  padding:15px;
- background:rgba(0,0,0,.75);
- border:1px solid #00ffe7;
+ border-bottom:1px solid #00ffe7;
  box-shadow:0 0 25px #00ffe7;
- z-index:10;
 }
-input,button{
+.container{
+ max-width:420px;
+ margin:auto;
+ padding:15px;
+}
+.card{
+ border:1px solid #00ffe7;
+ box-shadow:0 0 15px #00ffe7;
+ padding:12px;
+ margin-bottom:15px;
+}
+h3{margin:5px 0;font-size:15px}
+p{font-size:13px;margin:4px 0}
+button,input{
  width:100%;
- margin-top:8px;
- padding:8px;
+ margin-top:6px;
  background:black;
  color:#00ffe7;
  border:1px solid #00ffe7;
+ padding:8px;
  font-family:'Orbitron';
 }
-button{cursor:pointer;font-weight:bold}
-#out p{font-size:12px;margin:4px 0}
-#map{
- position:fixed;
- bottom:15px;
- left:15px;
- width:320px;
- height:220px;
- border:1px solid #00ffe7;
+button:hover{background:#00ffe7;color:black}
+#map{height:220px;margin-top:10px}
+#pulse{
+ height:10px;
+ width:0%;
+ background:#00ffe7;
  box-shadow:0 0 20px #00ffe7;
- z-index:10;
-}
-#globe{
- position:fixed;
- top:0;left:0;
- width:100%;height:100%;
- z-index:1;
-}
-.grid{
- position:fixed;
- width:100%;height:100%;
- background:
- linear-gradient(#00ffe711 1px,transparent 1px),
- linear-gradient(90deg,#00ffe711 1px,transparent 1px);
- background-size:40px 40px;
- animation:move 25s linear infinite;
- z-index:0;
-}
-@keyframes move{
- from{background-position:0 0}
- to{background-position:400px 400px}
 }
 </style>
 </head>
 
 <body>
 
-<div class="grid"></div>
-<div id="globe"></div>
+<header>
+<h2>🌐 IP Tracer by Anik</h2>
+<small>Cyber Intelligence Panel</small>
+</header>
 
-<div id="hud">
-<h3>🧠 O.I.T.S GOD MODE</h3>
-<input id="ip" placeholder="ENTER IP (blank = auto)">
-<button onclick="trace()">INITIATE SCAN</button>
-<div id="out"></div>
-<hr>
-<p>☢ DARK WEB ACTIVITY: ACTIVE</p>
-<p>🕶 AGENCY INTEREST: HIGH</p>
-<p>📡 SATELLITE LINK: STABLE</p>
+<div class="container">
+
+<!-- IP TRACER -->
+<div class="card" id="ipinfo">
+<h3>📍 IP Tracer</h3>
+<p>Detecting...</p>
 </div>
 
-<div id="map"></div>
+<!-- CUSTOM IP -->
+<div class="card">
+<h3>🔎 Custom IP Lookup</h3>
+<input id="cip" placeholder="Enter IP address">
+<button onclick="customIP()">Search</button>
+<div id="cipout"></div>
+</div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160/build/three.min.js"></script>
+<!-- CONNECTION INTELLIGENCE -->
+<div class="card" id="conn">
+<h3>📡 Connection Intelligence</h3>
+</div>
+
+<!-- PRIVACY RADAR -->
+<div class="card" id="privacy">
+<h3>🧠 Privacy Radar</h3>
+</div>
+
+<!-- CYBER SIGNAL -->
+<div class="card">
+<h3>🛰 Cyber Signal Pulse</h3>
+<div id="pulse"></div>
+</div>
+
+<!-- MAP -->
+<div class="card">
+<h3>🗺 Location Map</h3>
+<div id="map"></div>
+</div>
+
+</div>
+
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-// ===== THREE.JS EARTH =====
-let scene=new THREE.Scene();
-let camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,1,1000);
-let renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-renderer.setSize(innerWidth,innerHeight);
-document.getElementById("globe").appendChild(renderer.domElement);
+// ================= IP TRACER =================
+async function myIP(){
+ let ip = await fetch("https://api.ipify.org?format=json").then(r=>r.json());
+ let d = await fetch("https://ipapi.co/"+ip.ip+"/json/").then(r=>r.json());
 
-let earth=new THREE.Mesh(
- new THREE.SphereGeometry(5,64,64),
- new THREE.MeshBasicMaterial({
-  map:new THREE.TextureLoader().load(
-   "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg"
-  )
- })
-);
-scene.add(earth);
-
-let beam=new THREE.Mesh(
- new THREE.CylinderGeometry(.03,.03,8,32),
- new THREE.MeshBasicMaterial({color:0x00ffe7})
-);
-beam.position.y=4;
-scene.add(beam);
-
-camera.position.z=12;
-
-function animate(){
- requestAnimationFrame(animate);
- earth.rotation.y+=0.002;
- beam.rotation.y+=0.01;
- renderer.render(scene,camera);
+ document.getElementById("ipinfo").innerHTML = `
+ <h3>📍 IP Tracer</h3>
+ <p>IP: ${d.ip}</p>
+ <p>Country: ${d.country_name}</p>
+ <p>City: ${d.city}</p>
+ <p>ISP: ${d.org}</p>
+ <p>Timezone: ${d.timezone}</p>
+ `;
 }
-animate();
+myIP();
 
-// ===== MAP =====
-let map=L.map('map').setView([0,0],2);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
-.addTo(map);
-let marker;
-
-function mark(lat,lng){
- map.setView([lat,lng],6);
- if(marker) map.removeLayer(marker);
- marker=L.marker([lat,lng]).addTo(map);
+// ================= CUSTOM IP =================
+async function customIP(){
+ let ip = document.getElementById("cip").value;
+ let d = await fetch("https://ipapi.co/"+ip+"/json/").then(r=>r.json());
+ document.getElementById("cipout").innerHTML = `
+ <p>Country: ${d.country_name}</p>
+ <p>City: ${d.city}</p>
+ <p>ISP: ${d.org}</p>
+ `;
 }
 
-// ===== VOICE =====
-function speak(t){
- let s=new SpeechSynthesisUtterance(t);
- s.rate=0.9;
- speechSynthesis.speak(s);
-}
+// ================= CONNECTION INTELLIGENCE =================
+const c = navigator.connection || {};
+document.getElementById("conn").innerHTML += `
+<p>Type: ${c.effectiveType || "N/A"}</p>
+<p>Downlink: ${c.downlink || "N/A"} Mbps</p>
+<p>RTT: ${c.rtt || "N/A"} ms</p>
+<p>Save Data: ${c.saveData || false}</p>
+<p>Status: ${navigator.onLine ? "Online" : "Offline"}</p>
+`;
 
-// ===== IP TRACE =====
-function trace(){
- speak("Orbital scan initiated");
- let ip=document.getElementById("ip").value.trim();
- let url=ip?`https://ipapi.co/${ip}/json/`:`https://ipapi.co/json/`;
+// ================= PRIVACY RADAR =================
+document.getElementById("privacy").innerHTML += `
+<p>Cookies Enabled: ${navigator.cookieEnabled}</p>
+<p>Do Not Track: ${navigator.doNotTrack}</p>
+<p>LocalStorage: ${!!window.localStorage}</p>
+<p>SessionStorage: ${!!window.sessionStorage}</p>
+<p>IndexedDB: ${!!window.indexedDB}</p>
+`;
 
- fetch(url).then(r=>r.json()).then(d=>{
-  if(d.error){
-   document.getElementById("out").innerHTML="<p>❌ INVALID IP</p>";
-   speak("Invalid IP detected");
-   return;
-  }
-  let threat=Math.floor(Math.random()*20)+80;
-  document.getElementById("out").innerHTML=`
-   <p>🧬 IP: ${d.ip}</p>
-   <p>🌍 Country: ${d.country_name}</p>
-   <p>🏙 City: ${d.city}</p>
-   <p>📡 ISP: ${d.org}</p>
-   <p>🛰 Lat/Lng: ${d.latitude}, ${d.longitude}</p>
-   <p>☢ THREAT LEVEL: ${threat}%</p>
-   <p>⚡ STATUS: TRACE COMPLETE</p>
-  `;
-  mark(d.latitude,d.longitude);
-  speak("Scan completed successfully");
- });
-}
+// ================= CYBER SIGNAL =================
+let w = 0;
+setInterval(()=>{
+ w = (w + Math.random()*25) % 100;
+ document.getElementById("pulse").style.width = w + "%";
+},600);
+
+// ================= MAP =================
+let map = L.map('map').setView([0,0],2);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+navigator.geolocation.getCurrentPosition(pos=>{
+ let lat = pos.coords.latitude;
+ let lon = pos.coords.longitude;
+ map.setView([lat,lon],12);
+ L.marker([lat,lon]).addTo(map).bindPopup("Your Location").openPopup();
+});
 </script>
 
 </body>
